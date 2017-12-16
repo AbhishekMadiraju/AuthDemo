@@ -20,6 +20,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.urlencoded({extended: true}));
 
+passport.use(new localStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
@@ -31,7 +32,7 @@ app.get("/", function(req, res){
     res.render("home");
 });
 
-app.get("/secret", function(req, res){
+app.get("/secret", isLoggedIn, function(req, res){
     res.render("secret");
 });
 
@@ -52,6 +53,33 @@ app.post("/register", function(req, res){
         });
     });
 });
+
+//login form
+app.get("/login", function(req, res){
+    res.render("login");
+});
+
+//login logic
+//middleware
+app.post("/login", passport.authenticate("local",{
+    successRedirect: "/secret",
+    failureRedirect: "/login"
+}),function(req, res){
+
+});
+
+app.get("/logout", function(req, res){
+    req.logout();
+    res.redirect("/");
+});
+
+//middleware
+function isLoggedIn(req, res, next){
+    if(req.isAuthenticated()){
+        return next();
+    }
+    res.redirect("/login");
+}
 
 app.listen(7000, function(){
     console.log("Server Started....");
